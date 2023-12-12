@@ -202,11 +202,14 @@ def formation():
 def get_equip():
     print("get equip")
     page_text = get_text(region_full)
-    while '请选择装备' not in page_text:
+    retry_time = 0
+    while '请选择装备' not in page_text and retry_time < 10:
         print("等待装备选择")
         time.sleep(1)
         page_text = get_text(region_full)
-    while '确定' not in page_text:
+        retry_time = retry_time + 1
+    retry_time = 0
+    while '确定' not in page_text and retry_time < 10:
         if '可激活' in page_text:
             detect_and_click_string('可激活', region_full, 0)
             time.sleep(2)
@@ -226,7 +229,8 @@ def get_equip():
             pyautogui.click(int(0.5 * screen_width), int(0.5 * screen_height))
             time.sleep(2)
         page_text = get_text(region_full)
-    while '离开' not in page_text and '藏品' not in page_text and '结束购物' not in page_text:
+    retry_time = 0
+    while '离开' not in page_text and '藏品' not in page_text and '结束购物' not in page_text and retry_time < 10:
         detect_and_click_string('确定', region_4, 0)
         time.sleep(1)
         pyautogui.click(int(0.5 * screen_width), int(0.8 * screen_height))  # 防止激活提示卡死
@@ -237,13 +241,16 @@ def get_equip():
 def get_buff():
     print("get buff")
     page_text = get_text(region_full)
-    while not ('领取奖励' in page_text and '离开' not in page_text):
+    retry_time = 0
+    while not ('领取奖励' in page_text and '离开' not in page_text and retry_time > 10):
         print("等待buff选择")
         time.sleep(1)
         page_text = get_text(region_full)
+        retry_time = retry_time + 1
     page_text = get_text((0, int(0.25*screen_height), screen_width, int(0.75*screen_height)))
     print(page_text)
-    while '领取' not in page_text:
+    retry_time = 0
+    while '领取' not in page_text and retry_time < 10:
         print("选择buff")
         if '核心修复' in page_text:
             detect_and_click_string('核心修复', region_full, 0)
@@ -275,7 +282,8 @@ def get_buff():
         time.sleep(1)
         page_text = get_text((0, int(0.25 * screen_height), screen_width, int(0.75 * screen_height)))
     page_text = get_text(region_4)
-    while '离开' not in page_text and '藏品' not in page_text and '结束购物' not in page_text:
+    retry_time = 0
+    while '离开' not in page_text and '藏品' not in page_text and '结束购物' not in page_text and retry_time < 10:
         detect_and_click_string('领取', region_34, 0)
         time.sleep(1)
         pyautogui.click(int(0.5 * screen_width), int(0.9 * screen_height))
@@ -518,8 +526,8 @@ def store():
         detect_and_click_string('改进型手提电视', region_24, 0)
         time.sleep(1)
         detect_and_click_string('购买', region_4, 0)
-        time.sleep(0.5)
-        if detect_string('道具数量不足', region_full):
+        time.sleep(0.2)
+        if detect_image('./img/store-no-coin.png', region_full):
             pass
         else:
             time.sleep(1)
@@ -530,8 +538,8 @@ def store():
         detect_and_click_string('速递包裹', region_24, 0)
         time.sleep(1)
         detect_and_click_string('购买', region_4, 0)
-        time.sleep(0.5)
-        if detect_string('道具数量不足', region_full):
+        time.sleep(0.2)
+        if detect_image('./img/store-no-coin.png', region_full):
             pass
         else:
             time.sleep(1)
@@ -542,8 +550,8 @@ def store():
         detect_and_click_string('向量组件', region_24, 0)
         time.sleep(1)
         detect_and_click_string('购买', region_4, 0)
-        time.sleep(0.5)
-        if detect_string('道具数量不足', region_full):
+        time.sleep(0.2)
+        if detect_image('./img/store-no-coin.png', region_full):
             pass
         else:
             time.sleep(1)
@@ -552,8 +560,8 @@ def store():
         detect_and_click_string('演算增效', region_24, 0)
         time.sleep(1)
         detect_and_click_string('购买', region_4, 0)
-        time.sleep(0.5)
-        if detect_string('道具数量不足', region_full):
+        time.sleep(0.2)
+        if detect_image('./img/store-no-coin.png', region_full):
             pass
         else:
             time.sleep(1)
@@ -610,7 +618,7 @@ def battle():
             detect_and_click_image('./img/relive.png', (int(0.5*screen_width), int(0.5*screen_height), int(0.5*screen_width), int(0.5*screen_height)))
             time.sleep(0.5)
             if detect_image('./img/no-coin.png', region_full):
-                detect_and_click_string('放弃', region_3, 0)
+                detect_and_click_string('放弃', (0, int(0.5*screen_height), int(0.5*screen_width), int(0.5*screen_height)), 0)
         elif detect_image('./img/getreward.png', region_12):
             get_reward()
             break
