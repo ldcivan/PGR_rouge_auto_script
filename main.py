@@ -3,6 +3,7 @@ import cv2
 from paddleocr import PaddleOCR
 import pyautogui
 import logging
+import numpy as np
 
 logging.disable(logging.DEBUG)
 logging.disable(logging.WARNING)
@@ -69,10 +70,16 @@ def detect_and_click_string(text, region, trytime):
 
 # 功能三：检测屏幕特定区域，检测是否有某个特定图像出现
 def detect_image(img_path, region):
-    screenshot = pyautogui.screenshot(region=region)
-    screenshot.save('./log/screenshot.png')
-    img_position = pyautogui.locate(img_path, './log/screenshot.png', confidence=0.80)
-    if img_position is not None:
+    sample_image = cv2.imread(img_path, 0)
+    target_image = pyautogui.screenshot(region=region)
+    target_image.save('./log/screenshot.png')
+    target_image = cv2.cvtColor(np.array(target_image), cv2.COLOR_RGB2GRAY)
+
+    result = cv2.matchTemplate(target_image, sample_image, cv2.TM_CCOEFF_NORMED)
+
+    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+    threshold = 0.80  # 设置匹配的阈值
+    if max_val >= threshold:
         return True
     else:
         return False
@@ -84,14 +91,20 @@ def detect_and_click_image(img_path, region):
         print("等待图片", img_path)
         time.sleep(1)
         wait_time = wait_time + 1
-    screenshot = pyautogui.screenshot(region=region)
-    screenshot.save('./log/screenshot.png')
-    # 点击特定图标
-    img_position = pyautogui.locate(img_path, './log/screenshot.png', confidence=0.80)
-    if img_position is not None:
-        img_center = pyautogui.center(img_position)
-        pyautogui.click(img_center.x + region[0], img_center.y + region[1])
-        print("click", img_center.x + region[0], img_center.y + region[1], region)
+
+    sample_image = cv2.imread(img_path, 0)
+    target_image = pyautogui.screenshot(region=region)
+    target_image = cv2.cvtColor(np.array(target_image), cv2.COLOR_RGB2GRAY)
+
+    result = cv2.matchTemplate(target_image, sample_image, cv2.TM_CCOEFF_NORMED)
+
+    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+    threshold = 0.80  # 设置匹配的阈值
+    if max_val >= threshold:
+        top_left = max_loc
+        img_center = (int(top_left[0] + sample_image.shape[1] // 2), int(top_left[1] + sample_image.shape[0] // 2))
+        pyautogui.click(img_center[0] + region[0], img_center[1] + region[1])
+        print("click", img_center[0] + region[0], img_center[1] + region[1], region)
     else:
         print("无法找到以下图片，请尝试自行替换为自己截取的图片：", img_path)
 
@@ -182,6 +195,7 @@ def chose_difficulty():
     print('difficulty')
     if detect_image('./img/nextstep.png', region_4):
         pyautogui.click(int(0.5*screen_width), int(0.5*screen_height))
+        time.sleep(1)
         detect_and_click_image('./img/nextstep.png', region_4)
     else:
         chose_difficulty()
@@ -254,6 +268,9 @@ def get_buff():
         print("选择buff")
         if '核心修复' in page_text:
             detect_and_click_string('核心修复', region_full, 0)
+            pyautogui.click()
+        elif '燃血' in page_text:
+            detect_and_click_string('燃血', region_full, 0)
             pyautogui.click()
         elif '预加载' in page_text:
             detect_and_click_string('预加载', region_full, 0)
@@ -329,8 +346,9 @@ def tiexin_dadang():
     pyautogui.click(int(0.5*screen_width), int(0.8*screen_height))
 
 def bulv_panshan():
-    detect_and_click_string('跟上他', region_4, 0)
-    time.sleep(1)
+    while not detect_string('决定', region_4):
+        detect_and_click_string('跟上他', region_4, 0)
+        time.sleep(1)
     while not detect_string('查看信封', region_4):
         detect_and_click_string('看看保险柜', region_24, 0)
         detect_and_click_string('决定', region_4, 0)
@@ -355,10 +373,11 @@ def wugui_xinzhu():
 
 def yinmi_gongfang():
     global character_point
-    detect_and_click_string('收取', region_4, 0)
-    time.sleep(1)
-    pyautogui.click(int(0.5*screen_width), int(0.8*screen_height))
-    time.sleep(1)
+    while not detect_string('决定', region_4):
+        detect_and_click_string('收取', region_4, 0)
+        time.sleep(1)
+        pyautogui.click(int(0.5*screen_width), int(0.8*screen_height))
+        time.sleep(1)
     while not detect_string('出发', region_4):
         detect_and_click_string('直接出发', region_24, 0)
         detect_and_click_string('决定', region_4, 0)
@@ -367,8 +386,9 @@ def yinmi_gongfang():
     character_point = character_point + 2
 
 def huozai_xianchang():
-    detect_and_click_string('推测', region_4, 0)
-    time.sleep(1)
+    while not detect_string('决定', region_4):
+        detect_and_click_string('推测', region_4, 0)
+        time.sleep(1)
     while not detect_string('检查尸体', region_4):
         detect_and_click_string('愚蠢的失误', region_24, 0)
         detect_and_click_string('决定', region_4, 0)
@@ -380,8 +400,9 @@ def huozai_xianchang():
     pyautogui.click(int(0.5*screen_width), int(0.8*screen_height))
 
 def touhao_wanjia():
-    detect_and_click_string('继续', region_4, 0)
-    time.sleep(1)
+    while not detect_string('决定', region_4):
+        detect_and_click_string('继续', region_4, 0)
+        time.sleep(1)
     while not detect_string('离开', region_4):
         detect_and_click_string('月光', region_24, 0)
         detect_and_click_string('决定', region_4, 0)
@@ -409,10 +430,12 @@ def yanpin_gongjiang():
     pyautogui.click(int(0.5*screen_width), int(0.8*screen_height))
 
 def Jsgame():
-    detect_and_click_string('追上她', region_4, 0)
-    time.sleep(1)
-    detect_and_click_string('答应', region_4, 0)
-    time.sleep(1)
+    while not detect_string('答应', region_4):
+        detect_and_click_string('追上她', region_4, 0)
+        time.sleep(1)
+    while not detect_string('决定', region_4):
+        detect_and_click_string('答应', region_4, 0)
+        time.sleep(1)
     while not detect_string('摸索', region_4):
         detect_and_click_string('熊布偶', region_24, 0)
         detect_and_click_string('决定', region_4, 0)
@@ -433,9 +456,9 @@ def pinkun_shoucangjia():
     detect_and_click_string('离开', region_4, 0)
 
 def dongwu_fenchang():
-    time.sleep(1)
-    detect_and_click_string('查看周围', region_4, 0)
-    time.sleep(1)
+    while not detect_string('决定', region_24):
+        detect_and_click_string('查看周围', region_4, 0)
+        time.sleep(1)
     while not detect_string('搜索', region_4):
         detect_and_click_string('挖掘', region_24, 0)
         detect_and_click_string('决定', region_4, 0)
@@ -466,10 +489,12 @@ def niudanji():
     detect_and_click_string('离开', region_4, 0)
 
 def xuxu_rusheng():
-    detect_and_click_string('看向油画', region_24, 0)
-    time.sleep(1)
-    detect_and_click_string('继续', region_24, 0)
-    time.sleep(1)
+    while not detect_string('继续', region_24):
+        detect_and_click_string('看向油画', region_24, 0)
+        time.sleep(1)
+    while not detect_string('决定', region_24):
+        detect_and_click_string('继续', region_24, 0)
+        time.sleep(1)
     while not detect_string('转身去追女人', region_24):
         detect_and_click_string('绝境的希望', region_24, 0)
         detect_and_click_string('决定', region_4, 0)
@@ -507,17 +532,152 @@ def zhiming_shiwu():
     get_equip()
 
 def eyun_liansuo():
-    detect_and_click_string('上前', region_4, 0)
-    time.sleep(1)
+    while not detect_string('冲上前', region_4):
+        detect_and_click_string('上前', region_4, 0)
+        time.sleep(1)
     while not detect_string('挣脱', region_4):
         detect_and_click_string('躲开', region_24, 0)
         detect_and_click_string('冲上前', region_4, 0)
         time.sleep(1)
-    detect_and_click_string('挣脱', region_4, 0)
-    time.sleep(1)
+    while not detect_string('直面', region_4):
+        detect_and_click_string('挣脱', region_4, 0)
+        time.sleep(1)
     detect_and_click_string('直面', region_4, 0)
     time.sleep(1)
     battle()
+
+def buxiang_laoyin():
+    global character_point
+    while not detect_string('决定', region_4):
+        detect_and_click_string('前进', region_4, 0)
+        time.sleep(1)
+    while not detect_string('环顾四周', region_4):
+        detect_and_click_string('询问', region_24, 0)
+        detect_and_click_string('决定', region_4, 0)
+        time.sleep(1)
+    while not detect_string('取走', region_4):
+        detect_and_click_string('环顾四周', region_4, 0)
+        time.sleep(1)
+    while not detect_string('决定', region_4):
+        detect_and_click_string('取走', region_4, 0)
+        time.sleep(1)
+        pyautogui.click(int(0.5 * screen_width), int(0.8 * screen_height))
+        time.sleep(1)
+    while not detect_string('调整了下状态', region_4):
+        detect_and_click_string('直接出发', region_24, 0)
+        detect_and_click_string('决定', region_2, 0)
+        time.sleep(1)
+    detect_and_click_string('出发', region_24, 0)
+    character_point = character_point + 2
+
+def taochu_shengtian():
+    while not detect_string('决定', region_4):
+        detect_and_click_string('环顾四周', region_4, 0)
+        time.sleep(1)
+    while not detect_string('大声惨叫', region_2):
+        detect_and_click_string('让她试试', region_24, 0)
+        detect_and_click_string('决定', region_4, 0)
+        time.sleep(1)
+    while not detect_string('安抚', region_4):
+        detect_and_click_string('拉回绳子', region_24, 0)
+        detect_and_click_string('决定', region_4, 0)
+        time.sleep(1)
+    while not detect_string('离开', region_4):
+        detect_and_click_string('安抚', region_4, 0)
+        time.sleep(1)
+    detect_and_click_string('离开', region_4, 0)
+    time.sleep(1)
+    get_buff()
+
+def shuxia_nvwu():
+    while not detect_string('决定', region_4):
+        detect_and_click_string('上前', region_4, 0)
+        time.sleep(1)
+    while not detect_string('离开', region_4):
+        detect_and_click_string('接受少女的好意', region_24, 0)
+        detect_and_click_string('决定', region_4, 0)
+        time.sleep(1)
+    while not detect_string('继续前行', region_4):
+        detect_and_click_string('离开', region_4, 0)
+        time.sleep(1)
+    detect_and_click_string('继续前行', region_4, 0)
+    time.sleep(1)
+    pyautogui.click(int(0.5 * screen_width), int(0.8 * screen_height))
+
+def Jsstory():
+    while not detect_string('决定', region_4):
+        detect_and_click_string('继续', region_4, 0)
+        time.sleep(1)
+    while not detect_string('继续', region_4):
+        detect_and_click_string('旅行者的故事', region_24, 0)
+        detect_and_click_string('决定', region_4, 0)
+        time.sleep(1)
+    while not detect_string('zz', region_4):
+        detect_and_click_string('继续', region_4, 0)
+        time.sleep(1)
+    detect_and_click_string('zz', region_4, 0)
+    time.sleep(1)
+    get_equip()
+
+def xiuqi_zhidi():
+    global character_point
+    detect_and_click_string('前往', region_4, 0)
+    time.sleep(1)
+    pyautogui.click(int(0.5 * screen_width), int(0.8 * screen_height))
+    character_point = character_point + 2
+
+def caineng_jiaxiang():
+    while not detect_string('决定', region_4):
+        detect_and_click_string('继续', region_4, 0)
+        time.sleep(1)
+    while not detect_string('离开', region_4):
+        detect_and_click_string('赚钱', region_24, 0)
+        detect_and_click_string('决定', region_4, 0)
+        time.sleep(1)
+    detect_and_click_string('离开', region_4, 0)
+    time.sleep(1)
+    pyautogui.click(int(0.5 * screen_width), int(0.8 * screen_height))
+
+def yingxiong_jiaxiang():
+    while not detect_string('决定', region_4):
+        detect_and_click_string('跟随他', region_4, 0)
+        time.sleep(1)
+    while not detect_string('离开', region_4):
+        detect_and_click_string('答应他', region_24, 0)
+        detect_and_click_string('决定', region_4, 0)
+        time.sleep(1)
+    detect_and_click_string('离开', region_4, 0)
+    time.sleep(1)
+    pyautogui.click(int(0.5 * screen_width), int(0.8 * screen_height))
+
+def zidonghua_gongfang():
+    while not detect_string('决定', region_4):
+        detect_and_click_string('继续', region_4, 0)
+        time.sleep(1)
+    while not detect_string('进入', region_4):
+        detect_and_click_string('进入工坊', region_24, 0)
+        detect_and_click_string('决定', region_4, 0)
+        time.sleep(1)
+    detect_and_click_string('进入', region_4, 0)
+    time.sleep(1)
+    pyautogui.press('esc')
+    time.sleep(1)
+    detect_and_click_string('确定', region_34, 0)
+    time.sleep(1)
+    pyautogui.click(int(0.5 * screen_width), int(0.8 * screen_height))
+
+def shenyuan_yuyin():
+    while not detect_string('点头', region_4):
+        detect_and_click_string('转身', region_4, 0)
+        time.sleep(1)
+    while not detect_string('前', region_4):
+        detect_and_click_string('握紧', region_24, 0)
+        detect_and_click_string('点头', region_4, 0)
+        time.sleep(1)
+    detect_and_click_string('前', region_4, 0)
+    time.sleep(1)
+    battle()
+
 
 
 # 鲨士多
@@ -604,6 +764,7 @@ def battle():
         pyautogui.press('2')
         time.sleep(0.1)
         pyautogui.press('q')
+        pyautogui.press('g')
         time.sleep(0.2)
         pyautogui.press('j')
         time.sleep(0.2)
@@ -619,6 +780,7 @@ def battle():
             time.sleep(0.5)
             if detect_image('./img/no-coin.png', region_full):
                 detect_and_click_string('放弃', (0, int(0.5*screen_height), int(0.5*screen_width), int(0.5*screen_height)), 0)
+                break
         elif detect_image('./img/getreward.png', region_12):
             get_reward()
             break
@@ -629,7 +791,7 @@ def battle():
 def game():
     global character_point
     retry = 0
-    battle_keywords = ["艺术创新", "竭诚欢迎", "大难临头", "迫不及待", "疯狂侵攻", "守株待兔", "本能反应", "随心所欲", "点到为止", "排山倒海"]
+    battle_keywords = ["艺术创新", "竭诚欢迎", "大难临头", "迫不及待", "疯狂侵攻", "守株待兔", "本能反应", "随心所欲", "点到为止", "排山倒海", "正当防卫", "范围清理"]
     while True:
         page_text = get_text((int(0.2*screen_width), 0, int(0.8*screen_width), screen_height))
         print(page_text)
@@ -764,6 +926,14 @@ def game():
             detect_and_click_image('./img/chose.png', region_34)
             time.sleep(1)
             dongwu_fenchang()
+        elif '逃出生天' in page_text:
+            retry = 0
+            while not detect_image('./img/chose.png', region_34):
+                detect_and_click_string('逃出生天', (int(0.2*screen_width), int(0.1*screen_height), int(0.8*screen_width), int(0.4*screen_height)), 0)
+                time.sleep(1)
+            detect_and_click_image('./img/chose.png', region_34)
+            time.sleep(1)
+            taochu_shengtian()
         elif '厄运连锁' in page_text:
             retry = 0
             while not detect_image('./img/chose.png', region_34):
@@ -772,6 +942,14 @@ def game():
             detect_and_click_image('./img/chose.png', region_34)
             time.sleep(1)
             eyun_liansuo()
+        elif '不详烙印' in page_text:
+            retry = 0
+            while not detect_image('./img/chose.png', region_34):
+                detect_and_click_string('不详烙印', (int(0.2*screen_width), int(0.1*screen_height), int(0.8*screen_width), int(0.4*screen_height)), 0)
+                time.sleep(1)
+            detect_and_click_image('./img/chose.png', region_34)
+            time.sleep(1)
+            buxiang_laoyin()
         elif '天台扭蛋机' in page_text:
             retry = 0
             while not detect_image('./img/chose.png', region_34):
@@ -780,6 +958,62 @@ def game():
             detect_and_click_image('./img/chose.png', region_34)
             time.sleep(1)
             tiantai_niudanji()
+        elif '树下女巫' in page_text:
+            retry = 0
+            while not detect_image('./img/chose.png', region_34):
+                detect_and_click_string('树下女巫', (int(0.2*screen_width), int(0.1*screen_height), int(0.8*screen_width), int(0.4*screen_height)), 0)
+                time.sleep(1)
+            detect_and_click_image('./img/chose.png', region_34)
+            time.sleep(1)
+            shuxia_nvwu()
+        elif '讲故事' in page_text:
+            retry = 0
+            while not detect_image('./img/chose.png', region_34):
+                detect_and_click_string('讲故事', (int(0.2*screen_width), int(0.1*screen_height), int(0.8*screen_width), int(0.4*screen_height)), 0)
+                time.sleep(1)
+            detect_and_click_image('./img/chose.png', region_34)
+            time.sleep(1)
+            Jsstory()
+        elif '休憩之地' in page_text:
+            retry = 0
+            while not detect_image('./img/chose.png', region_34):
+                detect_and_click_string('休憩之地', (int(0.2*screen_width), int(0.1*screen_height), int(0.8*screen_width), int(0.4*screen_height)), 0)
+                time.sleep(1)
+            detect_and_click_image('./img/chose.png', region_34)
+            time.sleep(1)
+            xiuqi_zhidi()
+        elif '才能假象' in page_text:
+            retry = 0
+            while not detect_image('./img/chose.png', region_34):
+                detect_and_click_string('才能假象', (int(0.2*screen_width), int(0.1*screen_height), int(0.8*screen_width), int(0.4*screen_height)), 0)
+                time.sleep(1)
+            detect_and_click_image('./img/chose.png', region_34)
+            time.sleep(1)
+            caineng_jiaxiang()
+        elif '英雄假象' in page_text:
+            retry = 0
+            while not detect_image('./img/chose.png', region_34):
+                detect_and_click_string('英雄假象', (int(0.2*screen_width), int(0.1*screen_height), int(0.8*screen_width), int(0.4*screen_height)), 0)
+                time.sleep(1)
+            detect_and_click_image('./img/chose.png', region_34)
+            time.sleep(1)
+            yingxiong_jiaxiang()
+        elif '自动化工坊' in page_text:
+            retry = 0
+            while not detect_image('./img/chose.png', region_34):
+                detect_and_click_string('自动化工坊', (int(0.2*screen_width), int(0.1*screen_height), int(0.8*screen_width), int(0.4*screen_height)), 0)
+                time.sleep(1)
+            detect_and_click_image('./img/chose.png', region_34)
+            time.sleep(1)
+            zidonghua_gongfang()
+        elif '深渊余音' in page_text:
+            retry = 0
+            while not detect_image('./img/chose.png', region_34):
+                detect_and_click_string('深渊余音', (int(0.2*screen_width), int(0.1*screen_height), int(0.8*screen_width), int(0.4*screen_height)), 0)
+                time.sleep(1)
+            detect_and_click_image('./img/chose.png', region_34)
+            time.sleep(1)
+            shenyuan_yuyin()
         elif '鲨士多' in page_text:
             retry = 0
             """
