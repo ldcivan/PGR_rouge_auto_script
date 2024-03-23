@@ -1,5 +1,6 @@
 # PGR_rouge_auto_script
 Punishing: Gray Raven / 战双 帕弥什 肉鸽三期自动化脚本
+## 悲报：我被毕业设计撅了，所以本项目搁置了
 ## 注意：这还是一个开发版本，其效果还不稳定，容易出现卡死等异常情况，且无法使得游戏本体在后台运行（意思就是说你的电脑在刷的时候啥都干不了）；若您能给我们通过Issue提供宝贵建议，或者直接发起PR，我们将十分感激！
 ### 使用
 安装依赖，其中paddleOCR的安装请参考[官方文档](https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.7/doc/doc_ch/quickstart.md#1-%E5%AE%89%E8%A3%85)
